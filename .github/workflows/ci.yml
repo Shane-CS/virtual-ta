@@ -23,17 +23,17 @@ jobs:
 
     steps:
       - name: Set GitHub status to "pending"
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
-            await github.repos.createCommitStatus({
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
               state: 'pending',
               context: 'CI/build',
               description: 'Build is in progress',
-              target_url: context.payload.pull_request.html_url
+              target_url: context.payload.pull_request ? context.payload.pull_request.html_url : context.payload.head_commit.url
             });
 
       - uses: actions/checkout@v2
@@ -78,30 +78,30 @@ jobs:
 
       - name: Set GitHub status to "success"
         if: success()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
-            await github.repos.createCommitStatus({
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
               state: 'success',
               context: 'CI/build',
               description: 'Build succeeded',
-              target_url: context.payload.pull_request.html_url
+              target_url: context.payload.pull_request ? context.payload.pull_request.html_url : context.payload.head_commit.url
             });
 
       - name: Set GitHub status to "failure"
         if: failure()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
-            await github.repos.createCommitStatus({
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
               state: 'failure',
               context: 'CI/build',
               description: 'Build failed',
-              target_url: context.payload.pull_request.html_url
+              target_url: context.payload.pull_request ? context.payload.pull_request.html_url : context.payload.head_commit.url
             });
