@@ -26,7 +26,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const context = github.context;
             await github.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -82,7 +81,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const context = github.context;
             await github.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -98,7 +96,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const context = github.context;
             await github.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
