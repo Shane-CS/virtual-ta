@@ -14,7 +14,7 @@ permissions:
   statuses: write
 
 jobs:
-  build:
+  ci-build:
     runs-on: self-hosted
 
     env:
