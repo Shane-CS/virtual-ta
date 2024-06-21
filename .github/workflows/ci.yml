@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - edge
+      - main
+  pull_request:
+    branches:
+      - edge
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  ci-build:
+    runs-on: self-hosted
+
+    env:
+      APP_ENV: testing
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing_db
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Copy .env.example to .env
+        run: cp .env.example .env
+
+      - name: Update .env with secrets
+        run: |
+          sed -i 's/${APP_ENV}/$APP_ENV/' .env
+          sed -i 's/${DB_HOST}/$DB_HOST/' .env
+          sed -i 's/${DB_PORT}/$DB_PORT/' .env
+          sed -i 's/${DB_DATABASE}/$DB_DATABASE/' .env
+          sed -i 's/${DB_USERNAME}/$DB_USERNAME/' .env
+          sed -i 's/${DB_PASSWORD}/$DB_PASSWORD/' .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Create temporary database
+        run: mysql -u $DB_USERNAME -p$DB_PASSWORD -e "CREATE DATABASE $DB_DATABASE;"
+
+      - name: Set up database
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --force
+
+      - name: Run tests
+        run: php artisan test
+
+      - name: Drop temporary database
+        if: always()
+        run: mysql -u $DB_USERNAME -p$DB_PASSWORD -e "DROP DATABASE $DB_DATABASE;"

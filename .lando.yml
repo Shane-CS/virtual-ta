@@ -1,0 +1,33 @@
+name: virtual-ta
+recipe: laravel
+config:
+  webroot: public
+  database: mysql
+
+services:
+  appserver:
+    type: php:8.2
+    build_as_root:
+      - apt-get update -y && apt-get install -y git
+    run:
+      - if [ ! -d ".git" ]; then git clone https://github.com/Shane-CS/virtual-ta.git .; fi
+      - composer install
+      - php artisan migrate
+      - php artisan db:seed
+
+tooling:
+  pull:
+    service: appserver
+    description: "Pull the latest code from the repository"
+    cmd: |
+      git pull origin edge
+      composer install
+      php artisan migrate
+      php artisan db:seed
+
+  configure:
+    service: appserver
+    description: "Run the configuration script"
+    cmd: |
+      php artisan migrate
+      php artisan db:seed
